@@ -1,0 +1,61 @@
+specVersion: 0.0.4
+description: Testing NFT indexing
+repository: https://github.com/graphprotocol/example-subgraph
+features:
+  - ipfsOnEthereumContracts
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: NFTKEYMarketplaceV2
+    network: blast-testnet # Change this to the network your contract is deployed on
+    source:
+      address: "0x308b43D015Ac2bf158e7DfFe08a1630A371c81E4" # The address of the NFTKEYMarketplaceV2 contract
+      abi: NFTKEYMarketplaceV2
+      startBlock: 1433537 # The block in which the contract was deployed
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Listing
+        - Sale
+        - Bid
+      abis:
+        - name: NFTKEYMarketplaceV2
+          file: ./abis/NFTKEYMarketplaceV2.json
+      eventHandlers:
+        - event: TokenListed(indexed address,indexed uint256,(uint256,uint256,address,uint256))
+          handler: handleTokenListed
+        - event: TokenDelisted(indexed address,indexed uint256,(uint256,uint256,address,uint256))
+          handler: handleTokenDelisted
+        - event: TokenBought(indexed address,indexed uint256,indexed address,(uint256,uint256,address,uint256),uint256,uint256)
+          handler: handleTokenBought
+        - event: TokenBidEntered(indexed address,indexed uint256,(uint256,uint256,address,uint256))
+          handler: handleTokenBidEntered
+        - event: TokenBidWithdrawn(indexed address,indexed uint256,(uint256,uint256,address,uint256))
+          handler: handleTokenBidWithdrawn
+        - event: TokenBidAccepted(indexed address,indexed uint256,indexed address,(uint256,uint256,address,uint256),uint256,uint256)
+          handler: handleTokenBidAccepted
+      #file: ./src/mapping.ts
+      file: ./src/market.ts
+      
+  - name: ERC721
+    kind: ethereum/contract
+    network: blast-testnet
+    source:
+      abi: ERC721
+      startBlock: 1099936
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/erc721.ts
+      entities:
+        - ERC721
+      abis:
+        - name: ERC721
+          file: ./abis/ERC721.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
